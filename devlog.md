@@ -55,3 +55,25 @@ For tomorrow. We are going to do this:
 - [Anshul](https://www.github.com/anshulbahdani) will be figuring out AudioEngine part and what would we require.
 
 After a long chit chat after our meet we will be sleeping a good sleep after a tiring day :D
+
+## Devlog #2  
+*02-03-2026* ~by [Lavanya Rastogi](https://www.github.com/Lavanya24R)
+
+Welcome back to our devlog! Day 2 was focused on strengthening our foundation — refining UI, setting up cross-platform support, and researching about the Audio Engine. The progress made by each were: 
+
+- [Tanishq](https://github.com/Tanishq172006) built the beats activity skeleton and implemented its base UI design.
+- [Ananya](https://github.com/ananyatiwari05) successfully set up Xcode on macOS for iOS development, added simulators, tested sample code to verify everything works properly, and cloned the project repository to ensure the project runs smoothly on iOS.
+- [Anshul](https://www.github.com/anshulbahdani) worked on researching the Audio Engine architecture, focusing on: Smooth task scheduling, efficient audio playback handling and seamless application of effects like reverb, flanger etc.
+- [Lavanya](https://www.github.com/Lavanya24R) designed UI layouts for laptop/PC, optimized mobile UI, explored FL Studio for inspiration, and studied other music apps to refine the instruments interface and overall UX.
+
+ We decided that instead of building the Audio Engine components from scratch(not feasible within hackathon constraints) we will be using open-source technologies which will be more scalable and realistic. Therefore, the best primary option would be Media3, with FFmpeg as a fallback if required. For the UI, we will keep the paint and delete features in our app just like FL Studio, decided on what click does what for beats and keep horizontal mode as default for good instrument UI.
+
+### For Tomorrow
+- [Tanishq](https://github.com/Tanishq172006) will implement the second canvas screen, refactor and clean up the beats activity code
+- [Ananya](https://github.com/ananyatiwari05) will work on the first two activity pages of the app (initial screens flow).
+- [Anshul](https://www.github.com/anshulbahdani) will research on how to integrate Audio Engine libraries into our CMP app architecture.
+- [Lavanya](https://www.github.com/Lavanya24R) will clone the repository and start implementing UI add-ons and improvements into the project
+
+Day 2 gave us the base UI design with set up on different platforms. 
+
+After a final run of the desktop version of the app we will be able to give up on our coffees and pick up our blankets ;)
