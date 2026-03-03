@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,28 +49,27 @@ import org.example.project.ui.theme.*
 @Composable
 @Preview
 fun App() {
-    // This state variable holds the name of the current screen
+
     var currentScreen by remember { mutableStateOf("standards") }
 
     MaterialTheme {
-        // Switch based on the current screen state
+
         when (currentScreen) {
             "standards" -> {
-                // If the user clicks a button here, change state to "projects"
+
                 StandardsScreen(
                     onNavigateToProjects = { currentScreen = "projects" }
                 )
             }
             "projects" -> {
-                // If user clicks New Project -> go to music.
-                // If they want to go back -> go to standards.
+
                 ProjectSelectionScreen(
                     onNavigateToMusic = { currentScreen = "music_pad" },
                     onNavigateBack = { currentScreen = "standards" }
                 )
             }
             "music_pad" -> {
-                // Pass a callback to TopBar so the user can go back
+
                 MusicPadScreen(
                     onNavigateBack = { currentScreen = "projects" }
                 )
@@ -78,10 +78,11 @@ fun App() {
     }
 }
 
-// --- 2. THE MUSIC PAD SCREEN (Updated) ---
+
 @Composable
 fun MusicPadScreen(onNavigateBack: () -> Unit) {
     val viewModel = remember { TileViewModel() }
+    var isEditorMode by remember { mutableStateOf(false) }
 
     var showBeatSelector by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<String?>(null) }
@@ -108,24 +109,33 @@ fun MusicPadScreen(onNavigateBack: () -> Unit) {
                 .padding(16.dp)
         ) {
 
-            // Pass the back action down to the TopBar
+
             TopBar(onBackClick = onNavigateBack)
 
             Spacer(Modifier.height(16.dp))
 
-            SoundGrid(
-                categories = viewModel.categories,
-                audioPlayer = audioPlayer,
-                modifier = Modifier.weight(1f),
-                onLongPress = { categoryTitle, tile ->
-                    selectedCategory = categoryTitle
-                    selectedTile = tile
-                    showBeatSelector = true
-                }
-            )
+            if (!isEditorMode) {
+                SoundGrid(
+                    categories = viewModel.categories,
+                    audioPlayer = audioPlayer,
+                    modifier = Modifier.weight(1f),
+                    onLongPress = { categoryTitle, tile ->
+                        selectedCategory = categoryTitle
+                        selectedTile = tile
+                        showBeatSelector = true
+                    }
+                )
+            } else {
+                BeatEditorScreen(
+                    categories = viewModel.categories,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
 
         BottomControls(
+            isEditorMode = isEditorMode,
+            onToggle = { isEditorMode = !isEditorMode },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 20.dp)
@@ -159,7 +169,7 @@ fun MusicPadScreen(onNavigateBack: () -> Unit) {
     }
 }
 
-// --- 3. THE TOP BAR (Updated) ---
+
 @Composable
 fun TopBar(onBackClick: () -> Unit) {
     Row(
@@ -305,23 +315,36 @@ fun SoundPad(
 }
 
 @Composable
-fun BottomControls(modifier: Modifier = Modifier) {
-
+fun BottomControls(
+    isEditorMode: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(24.dp),
         color = BottomBarColor,
         tonalElevation = 8.dp
     ) {
-
         Row(
             modifier = Modifier
                 .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(32.dp)
         ) {
 
-            Icon(Icons.Default.GraphicEq, null, tint = Color.White)
-            Icon(Icons.Default.Piano, null, tint = Color.White)
+            Icon(
+                imageVector = Icons.Default.GraphicEq,
+                contentDescription = null,
+                tint = if (!isEditorMode) Color.White else Color.Gray,
+                modifier = Modifier.clickable { onToggle() }
+            )
+
+            Icon(
+                imageVector = Icons.Default.Piano,
+                contentDescription = null,
+                tint = if (isEditorMode) Color.White else Color.Gray,
+                modifier = Modifier.clickable { onToggle() }
+            )
         }
     }
 }
