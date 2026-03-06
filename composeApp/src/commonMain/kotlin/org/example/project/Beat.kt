@@ -5,5 +5,6 @@ data class Beat(
     val name: String,
     val fileName: String? = null,
     val steps: MutableList<Boolean> = MutableList(16) { false },
-    val drumPattern: DrumEditorState? = null
+    val drumPattern: DrumEditorState? = null,
+    val pianoPattern: PianoEditorState? = null
 )

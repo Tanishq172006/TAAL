@@ -1,10 +1,12 @@
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,16 +26,45 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.example.project.AudioPlayer
+import org.example.project.PianoEditorState
+
+val pianoNotes = listOf(
+    "piano_c5.wav",
+    "piano_b4.wav",
+    "piano_a4.wav",
+    "piano_g4.wav",
+    "piano_f4.wav",
+    "piano_e4.wav",
+    "piano_d4.wav",
+    "piano_c4.wav",
+    "piano_b3.wav",
+    "piano_a3.wav",
+    "piano_g3.wav",
+    "piano_f3.wav",
+    "piano_e3.wav",
+    "piano_d3.wav",
+    "piano_c3.wav",
+    "piano_b2.wav",
+    "piano_a2.wav",
+    "piano_g2.wav",
+    "piano_f2.wav",
+    "piano_e2.wav",
+    "piano_d2.wav",
+    "piano_c2.wav"
+)
 
 @Composable
 fun PianoRollEditor(
+    state: PianoEditorState,
+    audioPlayer: AudioPlayer,
+    onSave: () -> Unit,
     onClose: () -> Unit
 ) {
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(500.dp)
+            .fillMaxSize()
             .background(Color(0xFF444444), RoundedCornerShape(16.dp))
             .padding(16.dp)
     ) {
@@ -50,7 +80,7 @@ fun PianoRollEditor(
 
             Row {
 
-                IconButton(onClick = {}) {
+                IconButton(onClick = onSave) {
                     Icon(Icons.Default.Save, null)
                 }
 
@@ -60,74 +90,98 @@ fun PianoRollEditor(
             }
         }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
 
-        PianoKeyboard()
+        Row(modifier = Modifier.fillMaxSize()) {
 
-        Spacer(Modifier.height(12.dp))
+            VerticalPianoKeys(audioPlayer)
 
-        StepMatrix()
-    }
-}
+            Spacer(Modifier.width(8.dp))
 
-@Composable
-fun PianoKeyboard() {
-
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(2.dp)
-    ) {
-
-        repeat(14) {
-
-            Box(
-                modifier = Modifier
-                    .width(28.dp)
-                    .height(60.dp)
-                    .background(Color.White, RoundedCornerShape(4.dp))
+            StepMatrix(
+                state = state,
+                audioPlayer = audioPlayer,
+                modifier = Modifier.weight(1f)
             )
         }
     }
 }
 
 @Composable
-fun StepMatrix() {
+fun StepMatrix(
+    state: PianoEditorState,
+    audioPlayer: AudioPlayer,
+    modifier: Modifier = Modifier
+) {
 
     val horizontalScroll = rememberScrollState()
     val verticalScroll = rememberScrollState()
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = modifier
+            .fillMaxHeight()
             .verticalScroll(verticalScroll)
             .horizontalScroll(horizontalScroll)
     ) {
 
         Column {
 
-            repeat(24) { row ->
+            repeat(state.rows) { row ->
 
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
 
-                    repeat(32) { column ->
+                    repeat(state.cols) { column ->
 
-                        val color =
-                            if (row % 4 == 0)
-                                Color(0xFFAA5555)
-                            else
-                                Color(0xFF444444)
+                        val active = state.grid[row][column]
+
+                        val backgroundColor =
+                            when {
+                                active && column == state.playhead -> Color.Yellow
+                                active -> Color(0xFFFF6666)
+                                column == state.playhead -> Color(0xFF666666)
+                                column % 16 == 0 -> Color(0xFF505050)
+                                column % 4 == 0 -> Color(0xFF3A3A3A)
+                                else -> Color(0xFF2E2E2E)
+                            }
 
                         Box(
                             modifier = Modifier
-                                .size(14.dp)
-                                .background(color, CircleShape)
+                                .size(24.dp)
+                                .background(backgroundColor, RoundedCornerShape(4.dp))
+                                .clickable {
+
+                                    state.toggle(row, column)
+
+                                    if (state.grid[row][column]) {
+                                        audioPlayer.playSound(pianoNotes[row])
+                                    }
+                                }
                         )
                     }
                 }
 
                 Spacer(Modifier.height(6.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun VerticalPianoKeys(audioPlayer: AudioPlayer) {
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+
+        pianoNotes.forEach { note ->
+
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .height(24.dp)
+                    .background(Color.White, RoundedCornerShape(4.dp))
+                    .clickable {
+                        audioPlayer.playSound(note)
+                    }
+            )
         }
     }
 }

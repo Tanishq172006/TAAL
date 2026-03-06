@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -54,6 +55,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import pianoNotes
 
 
 @Composable
@@ -106,8 +108,9 @@ fun MusicPadScreen(
 ){
 
     var showAudioEditor by remember { mutableStateOf(false) }
-    val drumEditorState = remember { DrumEditorState() }
+    var drumEditorState by remember { mutableStateOf<DrumEditorState?>(null) }
     var playing by remember { mutableStateOf(false) }
+    var pianoEditorState by remember { mutableStateOf<PianoEditorState?>(null) }
 
     var isEditorMode by remember { mutableStateOf(false) }
 
@@ -157,10 +160,11 @@ fun MusicPadScreen(
                         selectedTile = tile
 
                         if (tile.instrument.name == "piano") {
+                            pianoEditorState = tile.beat?.pianoPattern ?: PianoEditorState()
                             showPianoEditor = true
                         }
-                        else if(tile.instrument.name == "drum")
-                        {
+                        else if (tile.instrument.name == "drum") {
+                            drumEditorState = tile.beat?.drumPattern ?: DrumEditorState()
                             showDrumEditor = true
                         }
                         else {
@@ -279,22 +283,47 @@ fun MusicPadScreen(
 
 
         if (showPianoEditor && selectedTile != null) {
+
             Dialog(onDismissRequest = { showPianoEditor = false }) {
 
-                PianoRollEditor(
-                    onClose = { showPianoEditor = false }
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.95f)
+                        .fillMaxHeight(0.8f)
+                ) {
+
+                    PianoRollEditor(
+                        state = pianoEditorState!!,
+                        audioPlayer = audioPlayer,
+
+                        onSave = {
+
+                            tileViewModel.assignBeat(
+                                selectedCategory!!,
+                                selectedTile!!.id,
+                                Beat(
+                                    id = "piano_${Clock.System.now().toEpochMilliseconds()}",
+                                    name = "Piano Pattern",
+                                    pianoPattern = pianoEditorState
+                                )
+                            )
+
+                            showPianoEditor = false
+                        },
+
+                        onClose = { showPianoEditor = false }
+                    )
+                }
             }
         }
-        if(showDrumEditor && selectedTile != null)
-        {
+        if (showDrumEditor && selectedTile != null && drumEditorState != null) {
 
             Dialog(onDismissRequest = { showDrumEditor = false }) {
 
                 Column {
 
                     DrumBeatEditor(
-                        state = drumEditorState,
+                        state = drumEditorState!!,
                         audioPlayer = audioPlayer,
 
                         onSave = {
@@ -305,7 +334,7 @@ fun MusicPadScreen(
                                 Beat(
                                     id = "custom_${Clock.System.now().toEpochMilliseconds()}",
                                     name = "Custom Beat",
-                                    drumPattern = drumEditorState
+                                    drumPattern = drumEditorState!!
                                 )
                             )
 
@@ -441,6 +470,30 @@ fun SoundGrid(
                             onClick = {
 
                                 val beat = tile.beat
+
+                                if (beat?.pianoPattern != null) {
+
+                                    playPianoPattern(
+                                        beat.pianoPattern,
+                                        audioPlayer
+                                    )
+
+
+                                } else if (beat?.drumPattern != null) {
+
+                                    playDrumPattern(
+                                        state = beat.drumPattern,
+                                        audioPlayer = audioPlayer
+                                    )
+
+                                } else if (beat?.fileName != null) {
+
+                                    audioPlayer.playSound(beat.fileName)
+
+                                } else {
+
+                                    audioPlayer.playSound(tile.instrument.name)
+                                }
 
                                 if (beat?.drumPattern != null) {
 
@@ -580,6 +633,31 @@ fun playDrumPattern(
             state.grid.forEachIndexed { row, steps ->
                 if (steps[step]) {
                     audioPlayer.playSound(drumFiles[row])
+                }
+            }
+
+            delay(stepDuration.toLong())
+        }
+    }
+}
+
+fun playPianoPattern(
+    state: PianoEditorState,
+    audioPlayer: AudioPlayer
+) {
+
+    CoroutineScope(Dispatchers.Default).launch {
+
+        val bpm = 120
+        val stepDuration = 60000 / (bpm * 4)
+
+        for (step in 0 until state.cols) {
+
+            state.playhead = step
+
+            state.grid.forEachIndexed { row, steps ->
+                if (steps[step]) {
+                    audioPlayer.playSound(pianoNotes[row])
                 }
             }
 
