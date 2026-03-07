@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.sqldelight)
+    id("com.google.gms.google-services")
 }
 
 kotlin {
@@ -34,21 +35,33 @@ kotlin {
         browser()
         binaries.executable()
     }
-    
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        binaries.executable()
-    }
-    
+
     sourceSets {
         androidMain.dependencies {
+            kotlin {
+                sourceSets {
+                    val androidMain by getting {
+                        dependencies {
+                            // ADD THIS LINE
+                            implementation("com.google.android.gms:play-services-auth:21.0.0")
+                            implementation("com.google.firebase:firebase-auth-ktx:23.0.0")
+                        }
+                    }
+                }
+            }
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.sqldelight.android.driver)
-
+            implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
+            implementation("com.google.android.gms:play-services-auth:21.0.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
         }
         commonMain.dependencies {
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -60,6 +73,7 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
+            implementation("dev.gitlive:firebase-auth:1.10.3")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

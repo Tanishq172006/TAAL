@@ -58,12 +58,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import pianoNotes
+import taal.composeapp.generated.resources.Res
 import kotlin.time.ExperimentalTime
 
 
 @Composable
-fun App(audioPlayer: AudioPlayer) {
-
+fun App(
+    audioPlayer: AudioPlayer,
+    authRepository: org.example.project.auth.AuthRepository,
+    onGoogleSignInClick: () -> Unit
+) {
     var currentScreen by rememberSaveable { mutableStateOf("standards") }
     val beatEditorState = rememberBeatEditorState()
     val audioImporter = remember { AudioImporter() }
@@ -71,39 +75,64 @@ fun App(audioPlayer: AudioPlayer) {
     val metronome = remember { MetronomeEngine() }
     val sequencer = remember { StepSequencer(metronome, audioPlayer) }
 
+    var showAuthScreen by remember { mutableStateOf(false) }
+    var isLoggedIn by remember { mutableStateOf(false) }
 
     MaterialTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = DarkBackground) {
+            Box(Modifier.fillMaxSize()) {
+                when (currentScreen) {
+                    "standards" -> {
+                        StandardsScreen(
+                            onNavigateToProjects = { currentScreen = "projects" }
+                        )
+                    }
 
-        when (currentScreen) {
-            "standards" -> {
+                    "projects" -> {
+                        ProjectSelectionScreen(
+                            onNavigateToMusic = { currentScreen = "music_pad" },
+                            onNavigateBack = { currentScreen = "standards" }
+                        )
+                    }
 
-                StandardsScreen(
-                    onNavigateToProjects = { currentScreen = "projects" }
+                    "music_pad" -> {
+                        MusicPadScreen(
+                            state = beatEditorState,
+                            onNavigateBack = { currentScreen = "projects" },
+                            audioImporter = audioImporter,
+                            tileViewModel = tileViewModel,
+                            audioPlayer = audioPlayer,
+                            metronome = metronome,
+                            sequencer = sequencer
+                        )
+                    }
+                }
+
+                ProfileIcon(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
+                    onClick = {
+                        showAuthScreen = true
+                    }
                 )
-            }
-            "projects" -> {
 
-                ProjectSelectionScreen(
-                    onNavigateToMusic = { currentScreen = "music_pad" },
-                    onNavigateBack = { currentScreen = "standards" }
-                )
-            }
-            "music_pad" -> {
-
-                MusicPadScreen(
-                    state = beatEditorState,
-                    onNavigateBack = { currentScreen = "projects" },
-                    audioImporter = audioImporter,
-                    tileViewModel = tileViewModel,
-                    audioPlayer = audioPlayer,
-                    metronome = metronome,
-                    sequencer = sequencer
-                )
+                if (showAuthScreen) {
+                    Dialog(onDismissRequest = { showAuthScreen = false }) {
+                        LoginSignupScreen(
+                            authRepository = authRepository,
+                            onGoogleSignInClick = onGoogleSignInClick,
+                            onLoginSuccess = {
+                                isLoggedIn = true
+                                showAuthScreen = false
+                            }
+                        )
+                    }
+                }
             }
         }
     }
 }
-
 
 @Composable
 @OptIn(ExperimentalTime::class)
@@ -116,19 +145,15 @@ fun MusicPadScreen(
     metronome: MetronomeEngine,
     sequencer: StepSequencer
 ){
-
     var showAudioEditor by remember { mutableStateOf(false) }
     var drumEditorState by remember { mutableStateOf<DrumEditorState?>(null) }
     var playing by remember { mutableStateOf(false) }
     var pianoEditorState by remember { mutableStateOf<PianoEditorState?>(null) }
     var metronomeRunning by remember { mutableStateOf(false) }
-
     var isEditorMode by remember { mutableStateOf(false) }
-
     var showBeatSelector by remember { mutableStateOf(false) }
     var showPianoEditor by remember { mutableStateOf(false) }
     var showDrumEditor by remember { mutableStateOf(false) }
-
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var selectedTile by remember { mutableStateOf<Tile?>(null) }
 
@@ -140,28 +165,14 @@ fun MusicPadScreen(
         )
     }
 
-
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DarkBackground)
-    ) {
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-
-
+    Box(modifier = Modifier.fillMaxSize().background(DarkBackground)) {
+        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             TopBar(
                 onBackClick = onNavigateBack,
                 metronome = metronome,
                 metronomeRunning = metronomeRunning,
                 onToggleMetronome = {
                     metronomeRunning = !metronomeRunning
-
                     if (metronomeRunning) {
                         metronome.start()
                         sequencer.start()
@@ -174,7 +185,6 @@ fun MusicPadScreen(
             Spacer(Modifier.height(16.dp))
 
             if (isEditorMode) {
-
                 SoundGrid(
                     categories = tileViewModel.categories,
                     audioPlayer = audioPlayer,
@@ -182,37 +192,29 @@ fun MusicPadScreen(
                     metronome = metronome,
                     sequencer = sequencer,
                     onLongPress = { categoryTitle, tile ->
-
                         selectedCategory = categoryTitle
                         selectedTile = tile
-
                         if (tile.instrument.name == "piano") {
                             pianoEditorState = tile.beat?.pianoPattern ?: PianoEditorState()
                             showPianoEditor = true
-                        }
-                        else if (tile.instrument.name == "drum") {
+                        } else if (tile.instrument.name == "drum") {
                             drumEditorState = tile.beat?.drumPattern ?: DrumEditorState()
                             showDrumEditor = true
-                        }
-                        else {
+                        } else {
                             showBeatSelector = true
                         }
                     }
                 )
-
             } else {
-
                 BeatEditorScreen(
                     categories = tileViewModel.categories,
                     state = state,
                     modifier = Modifier.weight(1f),
                     onTileLongPress = { instrumentIndex, stepIndex ->
-
                         val category = tileViewModel.categories[instrumentIndex]
                         val tile = category.tiles[stepIndex]
                         selectedCategory = category.title
                         selectedTile = tile
-
                         if (tile.instrument.name == "piano") {
                             showPianoEditor = true
                         } else {
@@ -226,53 +228,26 @@ fun MusicPadScreen(
         BottomControls(
             isEditorMode = isEditorMode,
             onToggle = { isEditorMode = !isEditorMode },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 20.dp)
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 20.dp)
         )
 
         if (showBeatSelector && selectedTile != null) {
             Dialog(onDismissRequest = { showBeatSelector = false }) {
-
-                Column(
-                    modifier = Modifier
-                        .background(Color.White, RoundedCornerShape(12.dp))
-                        .padding(16.dp)
-                ) {
-
+                Column(modifier = Modifier.background(Color.White, RoundedCornerShape(12.dp)).padding(16.dp)) {
                     BeatSelector(
                         beats = beats,
                         audioPlayer = audioPlayer,
                         onSaveToTile = { beat ->
-                            tileViewModel.assignBeat(
-                                selectedCategory!!,
-                                selectedTile!!.id,
-                                beat
-                            )
+                            tileViewModel.assignBeat(selectedCategory!!, selectedTile!!.id, beat)
                             showBeatSelector = false
                         },
                         onCreateNewTile = { beat ->
-                            tileViewModel.addTile(
-                                selectedCategory!!,
-                                selectedTile!!,
-                                beat
-                            )
+                            tileViewModel.addTile(selectedCategory!!, selectedTile!!, beat)
                             showBeatSelector = false
                         },
-
                         onImportAudio = {
                             audioImporter.pickAudio { path ->
-
-                                tileViewModel.assignBeat(
-                                    selectedCategory!!,
-                                    selectedTile!!.id,
-                                    Beat(
-                                        id = "imported",
-                                        name = "Imported Audio",
-                                        fileName = path
-                                    )
-                                )
-
+                                tileViewModel.assignBeat(selectedCategory!!, selectedTile!!.id, Beat("imported", "Imported Audio", path))
                                 showBeatSelector = false
                             }
                         },
@@ -307,19 +282,11 @@ fun MusicPadScreen(
             }
         }
 
-
         if (showPianoEditor && selectedTile != null) {
-
             Dialog(onDismissRequest = { showPianoEditor = false }) {
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.95f)
-                        .fillMaxHeight(0.8f)
-                ) {
-
+                Box(modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.8f)) {
                     PianoRollEditor(
-                        state = pianoEditorState!!,
+                        state = pianoEditorState ?: PianoEditorState(),
                         audioPlayer = audioPlayer,
 
                         onSave = {
@@ -342,16 +309,13 @@ fun MusicPadScreen(
                 }
             }
         }
+
         if (showDrumEditor && selectedTile != null && drumEditorState != null) {
-
             Dialog(onDismissRequest = { showDrumEditor = false }) {
-
                 Column {
-
                     DrumBeatEditor(
                         state = drumEditorState!!,
                         audioPlayer = audioPlayer,
-
                         onSave = {
 
                             tileViewModel.assignBeat(
@@ -391,13 +355,11 @@ fun MusicPadScreen(
 
         if (showAudioEditor && selectedTile != null) {
             Dialog(onDismissRequest = { showAudioEditor = false }) {
-
                 AudioEditor(
                     fileName = selectedTile!!.beat?.fileName
                         ?: selectedTile!!.instrument.name,
 
                     onClose = { showAudioEditor = false },
-
                     onSave = { fileName ->
 
                         tileViewModel.assignBeat(
@@ -414,7 +376,6 @@ fun MusicPadScreen(
     }
 }
 
-
 @Composable
 fun TopBar(
     onBackClick: () -> Unit,
@@ -427,7 +388,6 @@ fun TopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ){
-
         IconButton(onClick = onBackClick) {
             Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
         }
@@ -476,9 +436,7 @@ fun SoundGrid(
     ) {
 
         items(categories.size) { categoryIndex ->
-
             val category = categories[categoryIndex]
-
             Column {
 
                 Text(
@@ -496,19 +454,15 @@ fun SoundGrid(
                         .fillMaxWidth()
                         .height(200.dp)
                 ) {
-
                     items(category.tiles.size) { index ->
-
                         val tile = category.tiles[index]
                         val column = index / 2
-
                         SoundPad(
                             color = tile.instrument.color,
                             icon = painterResource(tile.instrument.iconRes),
                             isActive = tile.id in activeTiles,
                             isPlayhead = column == currentStep,
                             onClick = {
-
                                 activeTiles = activeTiles + tile.id
 
                                 val beat = tile.beat
@@ -670,58 +624,3 @@ fun BottomControls(
         }
     }
 }
-
-//fun playDrumPattern(
-//    state: DrumEditorState,
-//    audioPlayer: AudioPlayer,
-//    metronome: MetronomeEngine
-//) {
-//
-//    CoroutineScope(Dispatchers.Default).launch {
-//
-//        val drumFiles = listOf(
-//            "kick.wav","snare.wav","closedhat.wav",
-//            "openhat.wav","tom.wav","crash.wav",
-//            "ride.wav","clap.wav"
-//        )
-//
-//        metronome.step.collect { step ->
-//
-//            state.grid.forEachIndexed { row, steps ->
-//                if (steps[step]) {
-//                    audioPlayer.playSound(drumFiles[row])
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//fun playPianoPattern(
-//    state: PianoEditorState,
-//    audioPlayer: AudioPlayer,
-//    metronome: MetronomeEngine
-//) {
-//
-//    CoroutineScope(Dispatchers.Default).launch {
-//
-//        metronome.step.collect { step ->
-//
-//            state.playhead = step
-//
-//            state.grid.forEachIndexed { row, steps ->
-//                if (steps[step]) {
-//                    audioPlayer.playSound(pianoNotes[row])
-//                }
-//            }
-//        }
-//    }
-//}
-
-//@Preview
-//@Composable
-//fun AppPreview() {
-//
-//    val fakePlayer = AudioPlayer(AppContextHolder.context)
-//
-//    App(audioPlayer = fakePlayer)
-//}
