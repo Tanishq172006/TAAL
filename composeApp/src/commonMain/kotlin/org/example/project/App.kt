@@ -58,6 +58,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import pianoNotes
+import kotlin.time.ExperimentalTime
 
 
 @Composable
@@ -105,6 +106,7 @@ fun App(audioPlayer: AudioPlayer) {
 
 
 @Composable
+@OptIn(ExperimentalTime::class)
 fun MusicPadScreen(
     state: BeatEditorState,
     onNavigateBack: () -> Unit,
@@ -279,7 +281,6 @@ fun MusicPadScreen(
                     )
 
                     Spacer(Modifier.height(16.dp))
-
                     Text(
                         "+ Import Audio",
                         color = Color.Blue,
