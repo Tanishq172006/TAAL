@@ -223,3 +223,15 @@ For tomorrow:
 - [Tanishq](https://github.com/Tanishq172006)
     - Simple fixes and add more UIs for other instruments.
     - Fixing on all platforms.
+- [Anshul](https://www.github.com/anshulbadhani)
+    - Will study about miniaudio api and its C code.
+    - If time allows then I will try to figure out how to extend that API to include 𝓯𝓪𝓷𝓬𝓲𝓮𝓻 effects for advanced version of the software.
+- [Ananya](https://github.com/ananyatiwari05)
+    - Extend the authentication setup to iOS, macOS, Windows, and Linux to make it fully compatible across all Compose Multiplatform targets.
+    - Start working on the dashboard interface and its core functionality.
+- [Lavanya](https://www.github.com/Lavanya24R)
+    - Will use the bridge between .sq and .kt files to connect the database to the frontend and store new beats in the database.
+    - Also find C2 to C9 beats for piano.
+
+Now, we will sleep and wake up day after tomorrow :)
+Good night fellers!!
