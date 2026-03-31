@@ -138,12 +138,12 @@ TAAL/
 
 You can download the latest version of **TAAL** for your platform below.
 
-### Download Latest (v1.0.0)
+### Download Latest (v1.0.1)
 
-* [Android (.apk)](https://github.com/Tanishq172006/TAAL/releases/download/v1.0.0/TAAL.apk)
-* [Windows (.msi)](https://github.com/Tanishq172006/TAAL/releases/download/v1.0.0/TAAL-1.0.0.msi)
-* [macOS (.dmg)](https://github.com/Tanishq172006/TAAL/releases/download/v1.0.0/TAAL-1.0.0.dmg)
-* [Linux (.deb)](https://github.com/Tanishq172006/TAAL/releases/download/v1.0.0/taal_1.0.0_amd64.deb)
+* [Android (.apk)](https://github.com/Tanishq172006/TAAL/releases/download/v1.0.1/TAAL-v1.0.1.apk)
+* [Windows (.msi)](https://github.com/Tanishq172006/TAAL/releases/download/v1.0.1/TAAL-1.0.1.msi)
+* [macOS (.dmg)](https://github.com/Tanishq172006/TAAL/releases/download/v1.0.1/TAAL-1.0.1.dmg)
+* [Linux (.deb)](https://github.com/Tanishq172006/TAAL/releases/download/v1.0.1/taal_1.0.1_amd64.deb)
 
 ### Installation Guide
 
@@ -158,7 +158,7 @@ You can download the latest version of **TAAL** for your platform below.
 
 * **Linux (.deb)**  
   ```sh
-  sudo dpkg -i taal_1.0.0_amd64.deb
+  sudo dpkg -i taal_1.0.1_amd64.deb
   ```
 
 [View all releases](https://github.com/Tanishq172006/TAAL/releases)
