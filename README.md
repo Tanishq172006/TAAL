@@ -224,6 +224,15 @@ Follow these steps to run TAAL locally.
 
 ---
 
+<h3><b>bts- behind the scenes 😉</b></h3>
+
+- Check out our **Devlog** where we documented the journey
+- and our love-hate relationship with GRADLE
+  
+[devlog](./dEVLOG.md)
+
+---
+
 <h3><b>short note :) 🧃</b></h3>
 
 - a really crazy app (imo), made just in some weeks
