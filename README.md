@@ -229,7 +229,7 @@ Follow these steps to run TAAL locally.
 - Check out our **Devlog** where we documented the journey
 - and our love-hate relationship with GRADLE
   
-[devlog](./dEVLOG.md)
+[devlog](./devlog.md)
 
 ---
 
